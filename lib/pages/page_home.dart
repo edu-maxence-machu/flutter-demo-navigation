@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_navigation_starter/pages/page_contact.dart';
+import 'package:flutter_navigation_starter/models/movie.dart';
+import 'package:flutter_navigation_starter/pages/page_movie.dart';
+import 'package:flutter_navigation_starter/utils/api_movie.dart';
+import 'package:flutter_navigation_starter/widgets/movie_preview.dart';
 
 class PageHome extends StatefulWidget {
   PageHome({Key? key, required this.title}) : super(key: key);
@@ -9,80 +13,50 @@ class PageHome extends StatefulWidget {
   State<PageHome> createState() => _PageHomeState();
 }
 
+enum StatusApi { chargement, error, ok }
+
 class _PageHomeState extends State<PageHome> {
-  List<Map<String, dynamic>> contacts = [];
+  List<Movie> movies = [];
+  StatusApi? _statusApi;
 
   @override
   void initState() {
-    getContacts();
+    getPopularMovies();
     super.initState();
-  }
-
-  void getContacts() {
-    contacts = [
-      {
-        "name": "John",
-        "phone": "0123456789",
-        "picture": "https://thispersondoesnotexist.com/image?random=1"
-      },
-      {
-        "name": "Jane",
-        "phone": "0123456789",
-        "picture": "https://thispersondoesnotexist.com/image?random=2"
-      },
-      {
-        "name": "Jack",
-        "phone": "0123456789",
-        "picture": "https://thispersondoesnotexist.com/image?random=3"
-      }
-    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    final Size _size = MediaQuery.of(context).size;
+    StatusApi _statusApi;
 
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.title),
         ),
         body: ListView.builder(
-            itemCount: contacts.length,
+            itemCount: movies.length,
             itemBuilder: (context, i) {
-              Map<String, dynamic> contact = contacts[i];
-              return Container(
-                padding: EdgeInsets.all(10.0),
-                child: Card(
-                    elevation: 2.0,
-                    // InkWell car on a besoin d'un onTap pour aller sur une autre vue
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (BuildContext context) {
-                          return PageContact(contact: contact);
-                        }));
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              width: _size.width / 2.5,
-                              child: Text(
-                                contact['name'],
-                                style: TextStyle(color: Colors.blue),
-                              ),
-                            ),
-                            Text(
-                              contact['phone'],
-                              style: TextStyle(color: Colors.red),
-                            )
-                          ],
-                        ),
-                      ),
-                    )),
-              );
+              Movie movie = movies[i];
+              return MoviePreview(movie: movie);
             }));
+  }
+
+  Future<void> getPopularMovies() async {
+    setState(() {
+      _statusApi = StatusApi.chargement;
+    });
+    ApiMovie api = ApiMovie();
+    Map<String, dynamic> mapMovie = await api.getPopular();
+    if (mapMovie["code"] == 0) {
+      // Je peux concevoir ma liste de Movie
+      setState(() {
+        movies = Movie.moviesFromApi(mapMovie["body"]);
+        _statusApi = StatusApi.ok;
+      });
+    } else {
+      setState(() {
+        _statusApi = _statusApi = StatusApi.error;
+      });
+    }
   }
 }
