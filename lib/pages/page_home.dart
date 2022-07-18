@@ -45,6 +45,7 @@ class _PageHomeState extends State<PageHome> {
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.title),
+          automaticallyImplyLeading: false,
         ),
         body: ListView.builder(
             itemCount: contacts.length,
