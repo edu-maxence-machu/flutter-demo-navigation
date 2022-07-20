@@ -26,12 +26,12 @@ class Preferences {
     print("My user is logged in: $loggedIn");
 
     if (loggedIn) {
-      loggedIn = false;
+      loggedIn = true;
       secureStorage
           ?.write(key: 'jwt', value: _tokenFromAPI)
           .then((value) => {Navigator.pushNamed(context, '/')});
     } else {
-      loggedIn = true;
+      loggedIn = false;
       secureStorage
           ?.delete(key: 'jwt')
           .then((value) => {Navigator.pushNamed(context, '/login')});
